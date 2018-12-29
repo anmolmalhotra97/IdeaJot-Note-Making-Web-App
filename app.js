@@ -1,11 +1,12 @@
 const express = require("express");
 const exphbs = require("express-handlebars");
+const methodOverride = require("method-override");
 const bodyParser = require("body-parser");
 const mongoose = require("mongoose");
 
 const app = express();
 
-//Map global promise - get rid of the warning
+///Map global promise - get rid of the warning
 mongoose.Promise = global.Promise;
 //connect to mongoose
 mongoose
@@ -16,33 +17,41 @@ mongoose
   .then(() => console.log("MongoDB connected ...."))
   .catch(err => console.log(err));
 
-//load idea model
+// Load Idea Model
 require("./models/Idea");
 const Idea = mongoose.model("ideas");
 
-//handlebars middle-ware
-app.engine("handlebars", exphbs({ defaultLayout: "main" }));
+// Handlebars Middleware
+app.engine(
+  "handlebars",
+  exphbs({
+    defaultLayout: "main"
+  })
+);
 app.set("view engine", "handlebars");
 
-//body parser middle ware
+// Body parser middleware
 app.use(bodyParser.urlencoded({ extended: false }));
-
-// parse application/json
 app.use(bodyParser.json());
 
-//index route
+// Method override middleware
+app.use(methodOverride("_method"));
+
+// Index Route
 app.get("/", (req, res) => {
-  console.log("GET --> " + req.url);
-  const title = "Welcome to VidJot";
-  res.render("index", { title: title });
+  const title = "Welcome";
+  res.render("index", {
+    title: title
+  });
 });
+
+// About Route
 app.get("/about", (req, res) => {
-  console.log("GET --> " + req.url);
   res.render("about");
 });
-//idea index page
+
+// Idea Index Page
 app.get("/ideas", (req, res) => {
-  console.log("GET --> " + req.url);
   Idea.find({})
     .sort({ date: "desc" })
     .then(ideas => {
@@ -51,15 +60,14 @@ app.get("/ideas", (req, res) => {
       });
     });
 });
-//Add idea form
+
+// Add Idea Form
 app.get("/ideas/add", (req, res) => {
-  console.log("GET --> " + req.url);
   res.render("ideas/add");
 });
 
-//edit idea form
+// Edit Idea Form
 app.get("/ideas/edit/:id", (req, res) => {
-  console.log("GET --> " + req.url);
   Idea.findOne({
     _id: req.params.id
   }).then(idea => {
@@ -69,9 +77,8 @@ app.get("/ideas/edit/:id", (req, res) => {
   });
 });
 
-//Process form i.e post request
+// Process Form
 app.post("/ideas", (req, res) => {
-  console.log("POST --> " + req.url);
   let errors = [];
 
   if (!req.body.title) {
@@ -80,6 +87,7 @@ app.post("/ideas", (req, res) => {
   if (!req.body.details) {
     errors.push({ text: "Please add some details" });
   }
+
   if (errors.length > 0) {
     res.render("ideas/add", {
       errors: errors,
@@ -97,7 +105,23 @@ app.post("/ideas", (req, res) => {
   }
 });
 
+// Edit Form process
+app.put("/ideas/:id", (req, res) => {
+  Idea.findOne({
+    _id: req.params.id
+  }).then(idea => {
+    // new values
+    idea.title = req.body.title;
+    idea.details = req.body.details;
+
+    idea.save().then(idea => {
+      res.redirect("/ideas");
+    });
+  });
+});
+
 const port = 5000;
+
 app.listen(port, () => {
   console.log(`Server started on port ${port}`);
 });
