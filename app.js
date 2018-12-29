@@ -72,16 +72,6 @@ app.get("/about", (req, res) => {
   res.render("about");
 });
 
-//User login route
-app.get("/users/login", (req, res) => {
-  res.send("login");
-});
-
-//User register route
-app.get("/users/register", (req, res) => {
-  res.send("register");
-});
-
 //Use routes
 app.use("/ideas", ideas);
 app.use("/users", users);
