@@ -39,6 +39,7 @@ app.use(methodOverride("_method"));
 
 // Index Route
 app.get("/", (req, res) => {
+  console.log("GET --> " + req.url);
   const title = "Welcome";
   res.render("index", {
     title: title
@@ -47,11 +48,15 @@ app.get("/", (req, res) => {
 
 // About Route
 app.get("/about", (req, res) => {
+  console.log("GET --> " + req.url);
+
   res.render("about");
 });
 
 // Idea Index Page
 app.get("/ideas", (req, res) => {
+  console.log("GET --> " + req.url);
+
   Idea.find({})
     .sort({ date: "desc" })
     .then(ideas => {
@@ -63,11 +68,15 @@ app.get("/ideas", (req, res) => {
 
 // Add Idea Form
 app.get("/ideas/add", (req, res) => {
+  console.log("GET --> " + req.url);
+
   res.render("ideas/add");
 });
 
 // Edit Idea Form
 app.get("/ideas/edit/:id", (req, res) => {
+  console.log("GET --> " + req.url);
+
   Idea.findOne({
     _id: req.params.id
   }).then(idea => {
@@ -79,6 +88,8 @@ app.get("/ideas/edit/:id", (req, res) => {
 
 // Process Form
 app.post("/ideas", (req, res) => {
+  console.log("POST --> " + req.url);
+
   let errors = [];
 
   if (!req.body.title) {
@@ -107,6 +118,8 @@ app.post("/ideas", (req, res) => {
 
 // Edit Form process
 app.put("/ideas/:id", (req, res) => {
+  console.log("PUT --> " + req.url);
+
   Idea.findOne({
     _id: req.params.id
   }).then(idea => {
@@ -120,6 +133,16 @@ app.put("/ideas/:id", (req, res) => {
   });
 });
 
+//Delete idea
+app.delete("/ideas/:id", (req, res) => {
+  console.log("DELETE --> " + req.url);
+
+  Idea.deleteOne({
+    _id: req.params.id
+  }).then(() => {
+    res.redirect("/ideas");
+  });
+});
 const port = 5000;
 
 app.listen(port, () => {
