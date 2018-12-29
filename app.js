@@ -8,6 +8,10 @@ const session = require("express-session");
 
 const app = express();
 
+//load routes
+const ideas = require("./routes/ideas");
+const users = require("./routes/users");
+
 ///Map global promise - get rid of the warning
 mongoose.Promise = global.Promise;
 //connect to mongoose
@@ -18,10 +22,6 @@ mongoose
   )
   .then(() => console.log("MongoDB connected ...."))
   .catch(err => console.log(err));
-
-// Load Idea Model
-require("./models/Idea");
-const Idea = mongoose.model("ideas");
 
 // Handlebars Middleware
 app.engine(
@@ -72,99 +72,20 @@ app.get("/about", (req, res) => {
   res.render("about");
 });
 
-// Idea Index Page
-app.get("/ideas", (req, res) => {
-  console.log("GET --> " + req.url);
-
-  Idea.find({})
-    .sort({ date: "desc" })
-    .then(ideas => {
-      res.render("ideas/index", {
-        ideas: ideas
-      });
-    });
+//User login route
+app.get("/users/login", (req, res) => {
+  res.send("login");
 });
 
-// Add Idea Form
-app.get("/ideas/add", (req, res) => {
-  console.log("GET --> " + req.url);
-
-  res.render("ideas/add");
+//User register route
+app.get("/users/register", (req, res) => {
+  res.send("register");
 });
 
-// Edit Idea Form
-app.get("/ideas/edit/:id", (req, res) => {
-  console.log("GET --> " + req.url);
+//Use routes
+app.use("/ideas", ideas);
+app.use("/users", users);
 
-  Idea.findOne({
-    _id: req.params.id
-  }).then(idea => {
-    res.render("ideas/edit", {
-      idea: idea
-    });
-  });
-});
-
-// Process Form
-app.post("/ideas", (req, res) => {
-  console.log("POST --> " + req.url);
-
-  let errors = [];
-
-  if (!req.body.title) {
-    errors.push({ text: "Please add a title" });
-  }
-  if (!req.body.details) {
-    errors.push({ text: "Please add some details" });
-  }
-
-  if (errors.length > 0) {
-    res.render("ideas/add", {
-      errors: errors,
-      title: req.body.title,
-      details: req.body.details
-    });
-  } else {
-    const newUser = {
-      title: req.body.title,
-      details: req.body.details
-    };
-    new Idea(newUser).save().then(idea => {
-      req.flash("success_msg", "Your idea has been successfully Added");
-      res.redirect("/ideas");
-    });
-  }
-});
-
-// Edit Form process
-app.put("/ideas/:id", (req, res) => {
-  console.log("PUT --> " + req.url);
-
-  Idea.findOne({
-    _id: req.params.id
-  }).then(idea => {
-    // new values
-    idea.title = req.body.title;
-    idea.details = req.body.details;
-
-    idea.save().then(idea => {
-      req.flash("success_msg", "Your idea has been successfully Edited");
-      res.redirect("/ideas");
-    });
-  });
-});
-
-//Delete idea
-app.delete("/ideas/:id", (req, res) => {
-  console.log("DELETE --> " + req.url);
-
-  Idea.deleteOne({
-    _id: req.params.id
-  }).then(() => {
-    req.flash("success_msg", "Your idea has been successfully Deleted");
-    res.redirect("/ideas");
-  });
-});
 const port = 5000;
 
 app.listen(port, () => {
