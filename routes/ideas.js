@@ -10,7 +10,7 @@ const Idea = mongoose.model("ideas");
 router.get("/", ensureAuthenticated, (req, res) => {
   console.log("GET --> " + req.url);
 
-  Idea.find({})
+  Idea.find({ user: req.user.id })
     .sort({ date: "desc" })
     .then(ideas => {
       res.render("ideas/index", {
@@ -61,7 +61,8 @@ router.post("/", ensureAuthenticated, (req, res) => {
   } else {
     const newUser = {
       title: req.body.title,
-      details: req.body.details
+      details: req.body.details,
+      user: req.user.id
     };
     new Idea(newUser).save().then(idea => {
       req.flash("success_msg", "Your idea has been successfully Added");
@@ -80,6 +81,7 @@ router.put("/:id", ensureAuthenticated, (req, res) => {
     // new values
     idea.title = req.body.title;
     idea.details = req.body.details;
+    user: req.user.id;
 
     idea.save().then(idea => {
       req.flash("success_msg", "Your idea has been successfully Edited");
